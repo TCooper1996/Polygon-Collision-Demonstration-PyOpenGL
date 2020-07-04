@@ -1,15 +1,17 @@
 from OpenGL.GL import *
-from cyglfw3 import *
+import glfw
+
 import Game
 
+
 def key_callback(window, key, scancode, action, mode):
-    if key == KEY_ESCAPE and action == PRESS:
-        SetWindowShouldClose(window, GL_TRUE)
+    if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
+        glfw.set_window_should_close(window, GL_TRUE)
 
     if key >= 0 and key < 1024:
-        if action == PRESS:
+        if action == glfw.PRESS:
             game.Keys[key] = GL_TRUE
-        elif action == RELEASE:
+        elif action == glfw.RELEASE:
             game.Keys[key] = GL_FALSE
 
 
@@ -20,21 +22,18 @@ game = Game.Game(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 
 def main():
-    Init()
-    WindowHint(CONTEXT_VERSION_MAJOR, 3)
-    WindowHint(CONTEXT_VERSION_MINOR, 3)
-    WindowHint(OPENGL_PROFILE, OPENGL_CORE_PROFILE)
-    WindowHint(RESIZABLE, GL_FALSE)
-    WindowHint(SAMPLES, 4)
+    glfw.init()
+    glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+    glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+    glfw.window_hint(glfw.RESIZABLE, GL_FALSE)
+    glfw.window_hint(glfw.SAMPLES, 4)
 
-    window = CreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Collision Test", None, None)
+    window = glfw.create_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Collision Test", None, None)
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
-    MakeContextCurrent(window)
+    glfw.make_context_current(window)
 
-    #glewExperimantal = GL_TRUE
-    #glewInit()
-
-    SetKeyCallback(window, key_callback)
+    glfw.set_key_callback(window, key_callback)
 
     glLineWidth(2)
     glEnable(GL_MULTISAMPLE)
@@ -46,21 +45,32 @@ def main():
 
     clearColor = [float(1) for _ in range(4)]
 
-    while not WindowShouldClose(window):
-        currentFrame = GetTime()
+    # Main loop
+    while not glfw.window_should_close(window):
+        # Maintain time between frames in order to make motion independent of cpu speed.
+        # By scaling the magnitude of movement to the loop speed, game time is syncronized with real time.
+        currentFrame = glfw.get_time()
         deltaTime = currentFrame - lastFrame
         lastFrame = currentFrame
-        PollEvents()
 
+        # Grab keyboard events
+        glfw.poll_events()
+
+        # Process input and update screen objects
         game.ProcessInput(deltaTime)
         game.update(deltaTime)
+
+        # Clear screen
         glClearColor(*clearColor)
         glClear(GL_COLOR_BUFFER_BIT)
+
+        # Draw to buffer
         game.render()
 
-        SwapBuffers(window)
+        # Swap buffers to show changes
+        glfw.swap_buffers(window)
 
-    Terminate()
+    glfw.terminate()
 
 
 if __name__ == "__main__":

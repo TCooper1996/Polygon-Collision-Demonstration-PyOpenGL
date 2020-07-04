@@ -1,5 +1,4 @@
-from cyglfw3 import *
-import pyrr
+import glfw
 import numpy
 from ResourceManager import *
 from Renderer import *
@@ -27,15 +26,15 @@ class Game:
     def ProcessInput(self, dt):
         velocity = self.PLAYER_VELOCITY * dt
         next_x, next_y = 0, 0
-        walk = self.Keys[KEY_W] != self.Keys[KEY_S]
-        turn = self.Keys[KEY_A] != self.Keys[KEY_D]
+        walk = self.Keys[glfw.KEY_UP] != self.Keys[glfw.KEY_DOWN]
+        turn = self.Keys[glfw.KEY_LEFT] != self.Keys[glfw.KEY_RIGHT]
         if walk or turn:
             turn_angle = float(0.1) if turn else 0
-            if self.Keys[KEY_D]: turn_angle *= -1
-            if self.Keys[KEY_S]: velocity *= -1
+            if self.Keys[glfw.KEY_RIGHT]: turn_angle *= -1
+            if self.Keys[glfw.KEY_DOWN]: velocity *= -1
             if walk:
-                nextX = numpy.cos(self.selected.Rotation) * velocity
-                nextY = numpy.sin(self.selected.Rotation) * velocity
+                next_x = numpy.cos(self.selected.Rotation) * velocity
+                next_y = numpy.sin(self.selected.Rotation) * velocity
 
             new_vertices = self.selected.calcFinalVertices(xOffset=next_x, yOffset=next_y, rOffset=turn_angle)
             collisions = [self.checkOverlap(new_vertices, other.getVertices())
@@ -44,7 +43,7 @@ class Game:
                 self.selected.setVertices(new_vertices)
                 self.selected.addPosition(next_x, next_y, turn_angle)
 
-        if self.Keys[KEY_SPACE] and not self.keyLocked:
+        if self.Keys[glfw.KEY_SPACE] and not self.keyLocked:
             #  Set current _object to black before setting next object
             self.selected.SetColor("BLACK")
             if self.selected == self.gameObjects[0]:
@@ -57,7 +56,7 @@ class Game:
             #  Set new_object to red
             self.selected.SetColor("RED")
             self.keyLocked = True
-        if not self.Keys[KEY_SPACE]:
+        if not self.Keys[glfw.KEY_SPACE]:
             self.keyLocked = False
 
     def update(self, dt):
@@ -66,7 +65,6 @@ class Game:
     def render(self):
         for g in self.gameObjects:
             g.Draw(self.renderer)
-
 
     # Returns bool defined by collision
     def checkOverlap(self, p1Vertices, p2Vertices):
